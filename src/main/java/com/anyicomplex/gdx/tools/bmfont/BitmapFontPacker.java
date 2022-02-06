@@ -14,11 +14,14 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import static com.anyicomplex.gdx.tools.bmfont.Utils.quote;
+import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
 
 public class BitmapFontPacker {
 
     public static final int CODE_SUCCESS = 0;
     public static final int CODE_FILE_EXISTS = 1;
+
+    public static volatile boolean VERBOSE = false;
 
     public static class Configuration {
         public String name = null;
@@ -62,6 +65,7 @@ public class BitmapFontPacker {
 
     public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
         if (config == null) error("Configuration cannot be null.");
+        verbose("Generating BitmapFont config...");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
         if (config.pageWidth != -1 && config.pageHeight != -1) {
@@ -76,16 +80,13 @@ public class BitmapFontPacker {
                 }
             }
         }
+        verbose("Generating BitmapFont object...");
         FreeTypeFontGenerator.FreeTypeBitmapFontData data = new FreeTypeFontGenerator.FreeTypeBitmapFontData();
         BitmapFont bitmapFont = generator.generateFont(parameter, data);
         String fileName;
-        if (config.name == null || config.name.length() < 1) {
-            fileName = srcFile.nameWithoutExtension();
-        }
-        else {
-            fileName = config.name;
-        }
-        // check whether file(s) exists
+        if (config.name == null || config.name.length() < 1) fileName = srcFile.nameWithoutExtension();
+        else fileName = config.name;
+        verbose("Checking whether BitmapFont file exists...");
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
             FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName +
                     (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
@@ -99,6 +100,7 @@ public class BitmapFontPacker {
             bitmapFont.dispose();
             return CODE_FILE_EXISTS;
         }
+        verbose("Generating BitmapFont .png file...");
         FileHandle[] pageFiles = new FileHandle[bitmapFont.getRegions().size];
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
             Pixmap pixmap = bitmapFont.getRegion(i).getTexture().getTextureData().consumePixmap();
@@ -107,7 +109,9 @@ public class BitmapFontPacker {
             pageFiles[i] = pageFile;
             PixmapIO.writePNG(pageFile, pixmap);
         }
+        verbose("Generating BitmapFont .fnt file...");
         processFnt(data, pageFiles, fntFile, config);
+        verbose("Cleaning up...");
         bitmapFont.dispose();
         return CODE_SUCCESS;
     }
@@ -115,6 +119,12 @@ public class BitmapFontPacker {
     private static void error(String message) {
         if (message == null) throw new GdxRuntimeException((String) null);
         throw new GdxRuntimeException("[BMFontPacker] " + message);
+    }
+
+    private static void verbose(String message) {
+        if (stringNotEmpty(message) && VERBOSE) {
+            System.out.println("[BMFontPacker] " + message);
+        }
     }
 
     private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Configuration config) {

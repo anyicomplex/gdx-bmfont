@@ -93,6 +93,9 @@ public class GdxBMFont implements Callable<Integer> {
             description = "Whether override exist file")
     private boolean override;
 
+    @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable verbose output.")
+    private boolean verbose;
+
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setInitialVisible(false);
@@ -157,6 +160,7 @@ public class GdxBMFont implements Callable<Integer> {
         if (minFilter != null) config.minFilter = minFilter;
         if (magFilter != null) config.magFilter = magFilter;
         config.genMipMaps = genMipMaps;
+        BitmapFontPacker.VERBOSE = verbose;
         int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
         if (result == BitmapFontPacker.CODE_FILE_EXISTS) {
             System.err.println("BitmapFont file(s) already exists.");
