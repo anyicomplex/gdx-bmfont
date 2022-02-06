@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -118,7 +119,7 @@ public class BMFontPacker {
         throw new GdxRuntimeException("[BMFontPacker] " + message);
     }
 
-    public static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Settings settings) {
+    private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Settings settings) {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = settings.size;
         parameter.mono = settings.mono;
@@ -193,8 +194,8 @@ public class BMFontPacker {
                 .append(xmlCloseSelf)
                 .append("\n");
         builder.append(xmlOpen)
-                .append("common lineHeight=").append(quote(xml, data.lineHeight))
-                .append(" base=").append(quote(xml, data.capHeight + (data.flipped ? - data.ascent : data.ascent)))
+                .append("common lineHeight=").append(quote(xml, MathUtils.round(data.lineHeight)))
+                .append(" base=").append(quote(xml, MathUtils.round(data.capHeight + (data.flipped ? - data.ascent : data.ascent))))
                 .append(" scaleW=").append(quote(xml, settings.pageWidth))
                 .append(" scaleH=").append(quote(xml, settings.pageHeight))
                 .append(" pages=").append(quote(xml, pageFiles.length))
