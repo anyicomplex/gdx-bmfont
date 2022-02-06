@@ -1,2 +1,3 @@
 rootProject.name = 'gdx-bmfont'
+include 'lwjgl3:cli', 'lwjgl3:gui'
 
