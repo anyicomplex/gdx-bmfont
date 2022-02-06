@@ -162,10 +162,7 @@ public class GdxBMFont implements Callable<Integer> {
         config.genMipMaps = genMipMaps;
         BitmapFontPacker.VERBOSE = verbose;
         int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
-        if (result == BitmapFontPacker.CODE_FILE_EXISTS) {
-            System.err.println("BitmapFont files already exists.");
-            return 1;
-        }
+        if (result == BitmapFontPacker.CODE_FILE_EXISTS) return 1;
         return 0;
     }
 

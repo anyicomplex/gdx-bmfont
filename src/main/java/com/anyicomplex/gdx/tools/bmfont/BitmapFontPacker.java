@@ -64,7 +64,7 @@ public class BitmapFontPacker {
     }
 
     public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
-        if (config == null) error("Configuration cannot be null.");
+        if (config == null) exception("Configuration cannot be null.");
         verbose("Process begin.");
         verbose("Generating FreeType config...");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
@@ -101,14 +101,28 @@ public class BitmapFontPacker {
             verbose("Checking whether files exists...");
             for (FileHandle pageFile : pageFiles) {
                 if (pageFile.exists()) {
-                    bitmapFont.dispose();
-                    return CODE_FILE_EXISTS;
+                    try {
+                        error("BitmapFont files already exists.");
+                        return CODE_FILE_EXISTS;
+                    }
+                    finally {
+                        verbose("Cleaning up...");
+                        bitmapFont.dispose();
+                        verbose("Done.");
+                    }
                 }
                 verbose(pageFile.path() + " does not exist, pass.");
             }
             if (fntFile.exists()) {
-                bitmapFont.dispose();
-                return CODE_FILE_EXISTS;
+                try {
+                    error("BitmapFont files already exists.");
+                    return CODE_FILE_EXISTS;
+                }
+                finally {
+                    verbose("Cleaning up...");
+                    bitmapFont.dispose();
+                    verbose("Done.");
+                }
             }
             verbose(fntFile.path() + " does not exist, pass.");
         }
@@ -128,14 +142,20 @@ public class BitmapFontPacker {
         return CODE_SUCCESS;
     }
 
-    private static void error(String message) {
+    private static void exception(String message) {
         if (message == null) throw new GdxRuntimeException((String) null);
-        throw new GdxRuntimeException("[BMFontPacker] " + message);
+        throw new GdxRuntimeException("[BitmapFontPacker] " + message);
     }
 
     private static void verbose(String message) {
         if (stringNotEmpty(message) && VERBOSE) {
-            System.out.println("[BMFontPacker] " + message);
+            System.out.println("[BitmapFontPacker] " + message);
+        }
+    }
+
+    private static void error(String message) {
+        if (stringNotEmpty(message)) {
+            System.err.println("[BitmapFontPacker] " + message);
         }
     }
 
