@@ -37,7 +37,7 @@ public class GdxBMFont implements Callable<Integer> {
     private boolean mono;
     @CommandLine.Option(names = {"-H", "--hinting"}, paramLabel = "<none|slight|medium|full|autoSlight|autoMedium|autoFull>",
             description = "Strength of hinting.")
-    private FreeTypeFontGenerator.Hinting hinting = FreeTypeFontGenerator.Hinting.AutoMedium;
+    private FreeTypeFontGenerator.Hinting hinting;
     @CommandLine.Option(names = {"-C", "--color"}, description = "Foreground color (required for non-black borders). Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
     private Color color;
     @CommandLine.Option(names = {"-g", "--gamma"}, defaultValue = "1.8f", showDefaultValue = CommandLine.Help.Visibility.NEVER,
