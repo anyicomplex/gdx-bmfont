@@ -39,8 +39,9 @@ public class GdxBMFont implements Callable<Integer> {
     private boolean mono;
 
     public FreeTypeFontGenerator.Hinting hinting = FreeTypeFontGenerator.Hinting.AutoMedium;
-    public Color color = Color.WHITE;
 
+    @CommandLine.Option(names = {"-C", "--color"}, description = "Generated BitmapFont color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    public Color color;
     @CommandLine.Option(names = {"-g", "--gamma"}, defaultValue = "1.8f", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Glyph gamma. Values > 1 reduce antialiasing.")
     private float gamma;
@@ -50,9 +51,8 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-b", "--border-width"}, defaultValue = "0", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Border width in pixels, 0 to disable.")
     private float borderWidth;
-
-    public Color borderColor = Color.BLACK;
-
+    @CommandLine.Option(names = "--border-color", description = "Generated BitmapFont border color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    public Color borderColor;
     @CommandLine.Option(names = "--border-straight", defaultValue = "false", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "true for straight (mitered), false for rounded borders.")
     private boolean borderStraight;
@@ -62,16 +62,15 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-s", "--shadow-offsets"}, paramLabel = "<shadowOffsetX,shadowOffsetY>",
             description = "Offsets of text shadow on X and Y axis in pixels, 0 to disable.")
     private IntIntWrapper shadowOffsets;
-
-    public Color shadowColor = new Color(0, 0, 0, 0.75f);
-
+    @CommandLine.Option(names = "--shadow-color", description = "Generated BitmapFont shadow color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    public Color shadowColor;
     @CommandLine.Option(names = {"-S", "--spacing"}, paramLabel = "<spaceX,spaceY>",
             description = "Pixels to add to glyph spacing when text is rendered.")
     private IntIntWrapper spacing;
     @CommandLine.Option(names = {"-p", "--paddings"}, paramLabel = "<padTop,padLeft,padBottom,padRight>",
             description = "Pixels to add to the glyph in the texture.")
     private IntIntIntIntWrapper paddings;
-    @CommandLine.Option(names = {"-c", "--characters"}, description = "The characters the font should contain. If '\\0' is not included then BitmapFont.BitmapFontData.missingGlyph is not set.")
+    @CommandLine.Option(names = {"-c", "--characters"}, description = "The characters the font should contain.")
     private String characters;
     @CommandLine.Option(names = {"-k", "--kerning"}, defaultValue = "true", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Whether the font should include kerning.")
@@ -108,6 +107,7 @@ public class GdxBMFont implements Callable<Integer> {
                         .registerConverter(IntIntWrapper.class, new IntIntWrapperConverter())
                         .registerConverter(IntIntIntIntWrapper.class, new IntIntIntIntWrapperConverter())
                         .registerConverter(FntFormatWrapper.class, new FntFormatConverter())
+                        .registerConverter(Color.class, new ColorConverter())
                         .execute(args);
                 System.exit(exitCode);
             }
@@ -116,39 +116,42 @@ public class GdxBMFont implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        BMFontPacker.Settings settings = new BMFontPacker.Settings();
+        BMFontPacker.Configuration config = new BMFontPacker.Configuration();
         if (pageSize != null) {
-            settings.pageWidth = pageSize.arg0;
-            settings.pageHeight = pageSize.arg1;
+            config.pageWidth = pageSize.arg0;
+            config.pageHeight = pageSize.arg1;
         }
-        settings.borderWidth = borderWidth;
-        settings.borderGamma = borderGamma;
-        settings.borderStraight = borderStraight;
-        if (stringNotEmpty(characters)) settings.characters = characters;
-        if (fntFormat != null) settings.fntFormat = fntFormat.format;
-        settings.flip = flip;
-        settings.gamma = gamma;
-        settings.incremental = incremental;
-        settings.kerning = kerning;
-        settings.mono = mono;
-        if (stringNotEmpty(name)) settings.name = name;
+        config.borderWidth = borderWidth;
+        config.borderGamma = borderGamma;
+        config.borderStraight = borderStraight;
+        if (stringNotEmpty(characters)) config.characters = characters;
+        if (fntFormat != null) config.fntFormat = fntFormat.format;
+        config.flip = flip;
+        config.gamma = gamma;
+        config.incremental = incremental;
+        config.kerning = kerning;
+        config.mono = mono;
+        if (stringNotEmpty(name)) config.name = name;
         if (paddings != null) {
-            settings.padTop = paddings.arg0;
-            settings.padLeft = paddings.arg1;
-            settings.padBottom = paddings.arg2;
-            settings.padRight = paddings.arg3;
+            config.padTop = paddings.arg0;
+            config.padLeft = paddings.arg1;
+            config.padBottom = paddings.arg2;
+            config.padRight = paddings.arg3;
         }
-        settings.renderCount = renderCount;
+        config.renderCount = renderCount;
         if (spacing != null) {
-            settings.spaceX = spacing.arg0;
-            settings.spaceY = spacing.arg1;
+            config.spaceX = spacing.arg0;
+            config.spaceY = spacing.arg1;
         }
         if (shadowOffsets != null) {
-            settings.shadowOffsetX = shadowOffsets.arg0;
-            settings.shadowOffsetY = shadowOffsets.arg1;
+            config.shadowOffsetX = shadowOffsets.arg0;
+            config.shadowOffsetY = shadowOffsets.arg1;
         }
-        settings.size = size;
-        int result = BMFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), settings, override);
+        config.size = size;
+        if (color != null) config.color = color;
+        if (borderColor != null) config.borderColor = borderColor;
+        if (shadowColor != null) config.shadowColor = shadowColor;
+        int result = BMFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
         if (result == BMFontPacker.CODE_FILE_EXISTS) {
             System.err.println("BitmapFont file(s) already exists.");
             return 1;
@@ -207,6 +210,14 @@ public class GdxBMFont implements Callable<Integer> {
             allowed.addAll("txt", "xml");
             if (allowed.contains(value.toLowerCase(), false)) return new FntFormatWrapper(value);
             else throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+        }
+    }
+
+    private static class ColorConverter implements CommandLine.ITypeConverter<Color> {
+        @Override
+        public Color convert(String value) throws Exception {
+            value = value.replace("#", "").replace("0x", "");
+            return new Color(Integer.parseUnsignedInt(value, 16));
         }
     }
 

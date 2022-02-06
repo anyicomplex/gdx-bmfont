@@ -23,7 +23,7 @@ public class BMFontPackerProcessor {
                         System.getProperty("user.name"));
                 int exitCode = BMFontPacker.process(
                         Gdx.files.absolute(System.getProperty("user.home") + "/test.ttf"),
-                        fntDir, new BMFontPacker.Settings(), true);
+                        fntDir, new BMFontPacker.Configuration(), true);
                 if (exitCode != BMFontPacker.CODE_SUCCESS) System.exit(exitCode);
                 font = new BitmapFont(Gdx.files.absolute(fntDir + "/test.fnt"));
                 batch = new SpriteBatch();

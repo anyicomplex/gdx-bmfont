@@ -20,7 +20,7 @@ public class BMFontPacker {
     public static final int CODE_SUCCESS = 0;
     public static final int CODE_FILE_EXISTS = 1;
 
-    public static class Settings {
+    public static class Configuration {
         public String name = null;
         public int pageWidth = -1;
         public int pageHeight = -1;
@@ -56,23 +56,23 @@ public class BMFontPacker {
         public boolean incremental;
     }
 
-    public static int process(FileHandle srcFile, FileHandle dstDir, Settings settings) {
-        return process(srcFile, dstDir, settings, true);
+    public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config) {
+        return process(srcFile, dstDir, config, true);
     }
 
-    public static int process(FileHandle srcFile, FileHandle dstDir, Settings settings, boolean override) {
-        if (settings == null) error("Settings cannot be null.");
+    public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
+        if (config == null) error("Configuration cannot be null.");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(settings);
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
         // page(s)
-        if (settings.pageWidth != -1 && settings.pageHeight != -1) {
+        if (config.pageWidth != -1 && config.pageHeight != -1) {
             if (parameter.packer == null) {
-                parameter.packer = new PixmapPacker(settings.pageWidth, settings.pageHeight, Pixmap.Format.RGBA8888,
+                parameter.packer = new PixmapPacker(config.pageWidth, config.pageHeight, Pixmap.Format.RGBA8888,
                         1, false, new PixmapPacker.SkylineStrategy());
-                parameter.packer.setTransparentColor(settings.color);
+                parameter.packer.setTransparentColor(config.color);
                 parameter.packer.getTransparentColor().a = 0;
-                if (settings.borderWidth > 0) {
-                    parameter.packer.setTransparentColor(settings.borderColor);
+                if (config.borderWidth > 0) {
+                    parameter.packer.setTransparentColor(config.borderColor);
                     parameter.packer.getTransparentColor().a = 0;
                 }
             }
@@ -80,11 +80,11 @@ public class BMFontPacker {
         FreeTypeFontGenerator.FreeTypeBitmapFontData data = new FreeTypeFontGenerator.FreeTypeBitmapFontData();
         BitmapFont bitmapFont = generator.generateFont(parameter, data);
         String fileName;
-        if (settings.name == null || settings.name.length() < 1) {
+        if (config.name == null || config.name.length() < 1) {
             fileName = srcFile.nameWithoutExtension();
         }
         else {
-            fileName = settings.name;
+            fileName = config.name;
         }
         // check whether file(s) exists
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
@@ -109,7 +109,7 @@ public class BMFontPacker {
             PixmapIO.writePNG(pageFile, pixmap);
         }
         // .fnt
-        processFnt(data, pageFiles, fntFile, settings);
+        processFnt(data, pageFiles, fntFile, config);
         bitmapFont.dispose();
         return CODE_SUCCESS;
     }
@@ -119,43 +119,43 @@ public class BMFontPacker {
         throw new GdxRuntimeException("[BMFontPacker] " + message);
     }
 
-    private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Settings settings) {
+    private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Configuration config) {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = settings.size;
-        parameter.mono = settings.mono;
-        parameter.hinting = settings.hinting;
-        parameter.color = new Color(settings.color);
-        parameter.gamma = settings.gamma;
-        parameter.renderCount = settings.renderCount;
-        parameter.borderWidth = settings.borderWidth;
-        parameter.borderColor = new Color(settings.borderColor);
-        parameter.borderStraight = settings.borderStraight;
-        parameter.borderGamma = settings.borderGamma;
-        parameter.shadowOffsetX = settings.shadowOffsetX;
-        parameter.shadowOffsetY = settings.shadowOffsetY;
-        parameter.shadowColor = new Color(settings.shadowColor);
-        parameter.spaceX = settings.spaceX;
-        parameter.spaceY = settings.spaceY;
-        parameter.padTop = settings.padTop;
-        parameter.padLeft = settings.padLeft;
-        parameter.padBottom = settings.padBottom;
-        parameter.padRight = settings.padRight;
-        parameter.characters = settings.characters;
-        parameter.kerning = settings.kerning;
-        parameter.packer = settings.packer;
-        parameter.flip = settings.flip;
-        parameter.genMipMaps = settings.genMipMaps;
-        parameter.minFilter = settings.minFilter;
-        parameter.magFilter = settings.magFilter;
-        parameter.incremental = settings.incremental;
+        parameter.size = config.size;
+        parameter.mono = config.mono;
+        parameter.hinting = config.hinting;
+        parameter.color = new Color(config.color);
+        parameter.gamma = config.gamma;
+        parameter.renderCount = config.renderCount;
+        parameter.borderWidth = config.borderWidth;
+        parameter.borderColor = new Color(config.borderColor);
+        parameter.borderStraight = config.borderStraight;
+        parameter.borderGamma = config.borderGamma;
+        parameter.shadowOffsetX = config.shadowOffsetX;
+        parameter.shadowOffsetY = config.shadowOffsetY;
+        parameter.shadowColor = new Color(config.shadowColor);
+        parameter.spaceX = config.spaceX;
+        parameter.spaceY = config.spaceY;
+        parameter.padTop = config.padTop;
+        parameter.padLeft = config.padLeft;
+        parameter.padBottom = config.padBottom;
+        parameter.padRight = config.padRight;
+        parameter.characters = config.characters;
+        parameter.kerning = config.kerning;
+        parameter.packer = config.packer;
+        parameter.flip = config.flip;
+        parameter.genMipMaps = config.genMipMaps;
+        parameter.minFilter = config.minFilter;
+        parameter.magFilter = config.magFilter;
+        parameter.incremental = config.incremental;
         return parameter;
     }
 
     /**
      * source https://github.com/mattdesl/gdx-fontpack/blob/master/gdx-fontpack/src/mdesl/font/BitmapFontWriter.java
      */
-    private static void processFnt (BitmapFont.BitmapFontData data, FileHandle[] pageFiles, FileHandle fntFile, Settings settings) {
-        boolean xml = settings.fntFormat.equalsIgnoreCase("xml");
+    private static void processFnt (BitmapFont.BitmapFontData data, FileHandle[] pageFiles, FileHandle fntFile, Configuration config) {
+        boolean xml = config.fntFormat.equalsIgnoreCase("xml");
         StringBuilder builder = new StringBuilder();
         if (xml) {
             builder.append("<font>\n");
@@ -171,33 +171,33 @@ public class BMFontPacker {
         builder.append(xmlOpen)
                 .append("info face=\"")
                 .append(fntFile.nameWithoutExtension() == null ? "" : fntFile.nameWithoutExtension().replaceAll("\"", "'"))
-                .append("\" size=").append(quote(xml, settings.size))
-                .append(" bold=").append(quote(xml, settings.bold ? 1 : 0))
-                .append(" italic=").append(quote(xml, settings.italic ? 1 : 0))
-                .append(" charset=\"").append(settings.charset == null ? "" : settings.charset)
-                .append("\" unicode=").append(quote(xml, settings.unicode ? 1 : 0))
-                .append(" stretchH=").append(quote(xml, settings.stretchH))
-                .append(" smooth=").append(quote(xml, !settings.mono ? 1 : 0))
-                .append(" aa=").append(quote(xml, settings.renderCount))
+                .append("\" size=").append(quote(xml, config.size))
+                .append(" bold=").append(quote(xml, config.bold ? 1 : 0))
+                .append(" italic=").append(quote(xml, config.italic ? 1 : 0))
+                .append(" charset=\"").append(config.charset == null ? "" : config.charset)
+                .append("\" unicode=").append(quote(xml, config.unicode ? 1 : 0))
+                .append(" stretchH=").append(quote(xml, config.stretchH))
+                .append(" smooth=").append(quote(xml, !config.mono ? 1 : 0))
+                .append(" aa=").append(quote(xml, config.renderCount))
                 .append(" padding=")
                 .append(xmlQuote)
-                .append(settings.padTop).append(",")
-                .append(settings.padBottom).append(",")
-                .append(settings.padLeft).append(",")
-                .append(settings.padRight)
+                .append(config.padTop).append(",")
+                .append(config.padBottom).append(",")
+                .append(config.padLeft).append(",")
+                .append(config.padRight)
                 .append(xmlQuote)
                 .append(" spacing=")
                 .append(xmlQuote)
-                .append(settings.spaceX).append(",")
-                .append(settings.spaceY)
+                .append(config.spaceX).append(",")
+                .append(config.spaceY)
                 .append(xmlQuote)
                 .append(xmlCloseSelf)
                 .append("\n");
         builder.append(xmlOpen)
                 .append("common lineHeight=").append(quote(xml, MathUtils.round(data.lineHeight)))
                 .append(" base=").append(quote(xml, MathUtils.round(data.capHeight + (data.flipped ? - data.ascent : data.ascent))))
-                .append(" scaleW=").append(quote(xml, settings.pageWidth))
-                .append(" scaleH=").append(quote(xml, settings.pageHeight))
+                .append(" scaleW=").append(quote(xml, config.pageWidth))
+                .append(" scaleH=").append(quote(xml, config.pageHeight))
                 .append(" pages=").append(quote(xml, pageFiles.length))
                 .append(" packed=").append(quote(xml, 0))
                 .append(chnlParams)
@@ -216,7 +216,7 @@ public class BMFontPacker {
                     .append("\n");
         }
         if (xml) builder.append("\t</pages>\n");
-        Array<BitmapFont.Glyph> glyphs = new Array<>(settings.characters.length());
+        Array<BitmapFont.Glyph> glyphs = new Array<>(config.characters.length());
         for (int i = 0; i < data.glyphs.length; i ++) {
             if (data.glyphs[i] == null) continue;
             for (int j = 0; j < data.glyphs[i].length; j ++) {
@@ -249,7 +249,7 @@ public class BMFontPacker {
         }
         if (xml) builder.append("\t</chars>\n");
         
-        if (settings.kerning) {
+        if (config.kerning) {
             int kernCount = 0;
             StringBuilder kernings = new StringBuilder();
             for (int i = 0; i < glyphs.size; i ++) {
