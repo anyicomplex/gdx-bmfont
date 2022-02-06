@@ -204,8 +204,8 @@ public class GdxBMFont implements Callable<Integer> {
         @Override
         public FntFormatWrapper convert(String value) throws Exception {
             Array<String> allowed = new Array<>(2);
-            allowed.addAll("txt, xml");
-            if (!allowed.contains(value.toLowerCase(), false)) return new FntFormatWrapper(value);
+            allowed.addAll("txt", "xml");
+            if (allowed.contains(value.toLowerCase(), false)) return new FntFormatWrapper(value);
             else throw new CommandLine.TypeConversionException("Parameter type mismatch!");
         }
     }
