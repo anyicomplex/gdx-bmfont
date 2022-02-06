@@ -116,7 +116,7 @@ public class GdxBMFont implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        BMFontPacker.Configuration config = new BMFontPacker.Configuration();
+        BitmapFontPacker.Configuration config = new BitmapFontPacker.Configuration();
         if (pageSize != null) {
             config.pageWidth = pageSize.arg0;
             config.pageHeight = pageSize.arg1;
@@ -151,8 +151,8 @@ public class GdxBMFont implements Callable<Integer> {
         if (color != null) config.color = color;
         if (borderColor != null) config.borderColor = borderColor;
         if (shadowColor != null) config.shadowColor = shadowColor;
-        int result = BMFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
-        if (result == BMFontPacker.CODE_FILE_EXISTS) {
+        int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
+        if (result == BitmapFontPacker.CODE_FILE_EXISTS) {
             System.err.println("BitmapFont file(s) already exists.");
             return 1;
         }

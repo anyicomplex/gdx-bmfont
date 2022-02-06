@@ -1,4 +1,4 @@
-import com.anyicomplex.gdx.tools.bmfont.BMFontPacker;
+import com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
@@ -7,7 +7,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class BMFontPackerProcessor {
+public class BitmapFontPackerProcessor {
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
@@ -19,12 +19,12 @@ public class BMFontPackerProcessor {
             @Override
             public void create() {
                 super.create();
-                fntDir = Gdx.files.absolute(System.getProperty("java.io.tmpdir") + "/" + BMFontPackerProcessor.class.getCanonicalName() + "_" +
+                fntDir = Gdx.files.absolute(System.getProperty("java.io.tmpdir") + "/" + BitmapFontPackerProcessor.class.getCanonicalName() + "_" +
                         System.getProperty("user.name"));
-                int exitCode = BMFontPacker.process(
+                int exitCode = BitmapFontPacker.process(
                         Gdx.files.absolute(System.getProperty("user.home") + "/test.ttf"),
-                        fntDir, new BMFontPacker.Configuration(), true);
-                if (exitCode != BMFontPacker.CODE_SUCCESS) System.exit(exitCode);
+                        fntDir, new BitmapFontPacker.Configuration(), true);
+                if (exitCode != BitmapFontPacker.CODE_SUCCESS) System.exit(exitCode);
                 font = new BitmapFont(Gdx.files.absolute(fntDir + "/test.fnt"));
                 batch = new SpriteBatch();
             }

@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import static com.anyicomplex.gdx.tools.bmfont.Utils.quote;
 
-public class BMFontPacker {
+public class BitmapFontPacker {
 
     public static final int CODE_SUCCESS = 0;
     public static final int CODE_FILE_EXISTS = 1;
