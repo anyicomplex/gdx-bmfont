@@ -87,7 +87,8 @@ public class BMFontPacker {
         }
         // check whether file(s) exists
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
-            FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName + i + ".png");
+            FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName +
+                    (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
             if (pageFile.exists() && !override) {
                 bitmapFont.dispose();
                 return CODE_FILE_EXISTS;
@@ -101,7 +102,8 @@ public class BMFontPacker {
         FileHandle[] pageFiles = new FileHandle[bitmapFont.getRegions().size];
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
             Pixmap pixmap = bitmapFont.getRegion(i).getTexture().getTextureData().consumePixmap();
-            FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName + i + ".png");
+            FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName +
+                    (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
             pageFiles[i] = pageFile;
             PixmapIO.writePNG(pageFile, pixmap);
         }
@@ -147,8 +149,11 @@ public class BMFontPacker {
         parameter.incremental = settings.incremental;
         return parameter;
     }
-    
-    public static void processFnt (BitmapFont.BitmapFontData data, FileHandle[] pageFiles, FileHandle fntFile, Settings settings) {
+
+    /**
+     * source https://github.com/mattdesl/gdx-fontpack/blob/master/gdx-fontpack/src/mdesl/font/BitmapFontWriter.java
+     */
+    private static void processFnt (BitmapFont.BitmapFontData data, FileHandle[] pageFiles, FileHandle fntFile, Settings settings) {
         boolean xml = settings.fntFormat.equalsIgnoreCase("xml");
         StringBuilder builder = new StringBuilder();
         if (xml) {
@@ -204,7 +209,7 @@ public class BMFontPacker {
                     .append("page id=")
                     .append(quote(xml, i))
                     .append(" file=\"")
-                    .append(pageFiles[i])
+                    .append(pageFiles[i].name())
                     .append("\"")
                     .append(xmlCloseSelf)
                     .append("\n");
