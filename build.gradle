@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group 'io.github.anyicomplex'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    gdxVersion = '1.10.0'
+    picocliVersion = '4.6.2'
+}
+
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+
+    implementation "info.picocli:picocli:$picocliVersion"
+    annotationProcessor "info.picocli:picocli-codegen:$picocliVersion"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+test {
+    useJUnitPlatform()
+}
