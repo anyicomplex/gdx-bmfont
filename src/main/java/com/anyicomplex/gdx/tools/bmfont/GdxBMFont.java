@@ -6,7 +6,6 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.Array;
 import picocli.CommandLine;
@@ -22,7 +21,6 @@ public class GdxBMFont implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "The FreeType font file.")
     private File srcFile;
-
     @CommandLine.Parameters(index = "1", description = "The output directory.")
     private File dstDir;
 
@@ -37,11 +35,11 @@ public class GdxBMFont implements Callable<Integer> {
     private int size;
     @CommandLine.Option(names = {"-m", "--mono"}, description = "If true, font smoothing is disabled.")
     private boolean mono;
-
-    public FreeTypeFontGenerator.Hinting hinting = FreeTypeFontGenerator.Hinting.AutoMedium;
-
-    @CommandLine.Option(names = {"-C", "--color"}, description = "Generated BitmapFont color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
-    public Color color;
+    @CommandLine.Option(names = {"-H", "--hinting"}, paramLabel = "<none|slight|medium|full|autoSlight|autoMedium|autoFull>",
+            description = "Strength of hinting.")
+    private FreeTypeFontGenerator.Hinting hinting = FreeTypeFontGenerator.Hinting.AutoMedium;
+    @CommandLine.Option(names = {"-C", "--color"}, description = "Foreground color (required for non-black borders). Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    private Color color;
     @CommandLine.Option(names = {"-g", "--gamma"}, defaultValue = "1.8f", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Glyph gamma. Values > 1 reduce antialiasing.")
     private float gamma;
@@ -51,7 +49,7 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-b", "--border-width"}, defaultValue = "0", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Border width in pixels, 0 to disable.")
     private float borderWidth;
-    @CommandLine.Option(names = "--border-color", description = "Generated BitmapFont border color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    @CommandLine.Option(names = "--border-color", description = "Border color; only used if borderWidth > 0. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
     public Color borderColor;
     @CommandLine.Option(names = "--border-straight", defaultValue = "false", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "true for straight (mitered), false for rounded borders.")
@@ -62,8 +60,10 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-s", "--shadow-offsets"}, paramLabel = "<shadowOffsetX,shadowOffsetY>",
             description = "Offsets of text shadow on X and Y axis in pixels, 0 to disable.")
     private IntIntWrapper shadowOffsets;
-    @CommandLine.Option(names = "--shadow-color", description = "Generated BitmapFont shadow color. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
-    public Color shadowColor;
+    @CommandLine.Option(names = "--shadow-color",
+            description = "Shadow color; only used if shadowOffset > 0. If alpha component is 0, " +
+                    "no shadow is drawn but characters are still offset by shadowOffset. Should be hex string, eg. 0xFFFFFF #FF000000 FFFFFF.")
+    private Color shadowColor;
     @CommandLine.Option(names = {"-S", "--spacing"}, paramLabel = "<spaceX,spaceY>",
             description = "Pixels to add to glyph spacing when text is rendered.")
     private IntIntWrapper spacing;
@@ -75,20 +75,20 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-k", "--kerning"}, defaultValue = "true", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Whether the font should include kerning.")
     private boolean kerning;
-
-    public PixmapPacker packer = null;
-
     @CommandLine.Option(names = "--flip", defaultValue = "false", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Whether to flip the font vertically.")
     private boolean flip;
-
-    public boolean genMipMaps = false;
-    public Texture.TextureFilter minFilter = Texture.TextureFilter.Nearest;
-    public Texture.TextureFilter magFilter = Texture.TextureFilter.Nearest;
-
+    @CommandLine.Option(names = {"-M", "--gen-mipmaps"}, defaultValue = "false", showDefaultValue = CommandLine.Help.Visibility.NEVER,
+            description = "Whether to generate mip maps for the resulting texture.")
+    private boolean genMipMaps;
+    @CommandLine.Option(names = "--min-filter", paramLabel = "<nearest|linear|mipMap|mipMapNearestNearest|mipMapLinearNearest|" +
+            "mipMapNearestLinear|mipMapLinearLinear>", description = "Minification filter.")
+    private Texture.TextureFilter minFilter;
+    @CommandLine.Option(names = "--mag-filter", paramLabel = "<nearest|linear|mipMap|mipMapNearestNearest|mipMapLinearNearest|" +
+            "mipMapNearestLinear|mipMapLinearLinear>", description = "Magnification filter.")
+    private Texture.TextureFilter magFilter;
     @CommandLine.Option(names = {"-i", "--incremental"}, description = "When true, glyphs are rendered on the fly to the font's glyph page textures as they are needed.")
     private boolean incremental;
-
     @CommandLine.Option(names = {"-o", "--override"}, defaultValue = "false",
             description = "Whether override exist file")
     private boolean override;
@@ -108,6 +108,8 @@ public class GdxBMFont implements Callable<Integer> {
                         .registerConverter(IntIntIntIntWrapper.class, new IntIntIntIntWrapperConverter())
                         .registerConverter(FntFormatWrapper.class, new FntFormatConverter())
                         .registerConverter(Color.class, new ColorConverter())
+                        .registerConverter(FreeTypeFontGenerator.Hinting.class, new HintingConverter())
+                        .registerConverter(Texture.TextureFilter.class, new TextureFilterConverter())
                         .execute(args);
                 System.exit(exitCode);
             }
@@ -151,6 +153,10 @@ public class GdxBMFont implements Callable<Integer> {
         if (color != null) config.color = color;
         if (borderColor != null) config.borderColor = borderColor;
         if (shadowColor != null) config.shadowColor = shadowColor;
+        if (hinting != null) config.hinting = hinting;
+        if (minFilter != null) config.minFilter = minFilter;
+        if (magFilter != null) config.magFilter = magFilter;
+        config.genMipMaps = genMipMaps;
         int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
         if (result == BitmapFontPacker.CODE_FILE_EXISTS) {
             System.err.println("BitmapFont file(s) already exists.");
@@ -209,7 +215,7 @@ public class GdxBMFont implements Callable<Integer> {
             Array<String> allowed = new Array<>(2);
             allowed.addAll("txt", "xml");
             if (allowed.contains(value.toLowerCase(), false)) return new FntFormatWrapper(value);
-            else throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+            throw new CommandLine.TypeConversionException("Parameter type mismatch!");
         }
     }
 
@@ -218,6 +224,28 @@ public class GdxBMFont implements Callable<Integer> {
         public Color convert(String value) throws Exception {
             value = value.replace("#", "").replace("0x", "");
             return new Color(Integer.parseUnsignedInt(value, 16));
+        }
+    }
+
+    private static class HintingConverter implements CommandLine.ITypeConverter<FreeTypeFontGenerator.Hinting> {
+        @Override
+        public FreeTypeFontGenerator.Hinting convert(String value) throws Exception {
+            value = value.toLowerCase();
+            for (FreeTypeFontGenerator.Hinting hinting : FreeTypeFontGenerator.Hinting.values()) {
+                if (hinting.name().toLowerCase().equals(value)) return hinting;
+            }
+            throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+        }
+    }
+
+    private static class TextureFilterConverter implements CommandLine.ITypeConverter<Texture.TextureFilter> {
+        @Override
+        public Texture.TextureFilter convert(String value) throws Exception {
+            value = value.toLowerCase();
+            for (Texture.TextureFilter filter : Texture.TextureFilter.values()) {
+                if (filter.name().toLowerCase().equals(value)) return filter;
+            }
+            throw new CommandLine.TypeConversionException("Parameter type mismatch!");
         }
     }
 

@@ -64,7 +64,6 @@ public class BitmapFontPacker {
         if (config == null) error("Configuration cannot be null.");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
-        // page(s)
         if (config.pageWidth != -1 && config.pageHeight != -1) {
             if (parameter.packer == null) {
                 parameter.packer = new PixmapPacker(config.pageWidth, config.pageHeight, Pixmap.Format.RGBA8888,
@@ -108,7 +107,6 @@ public class BitmapFontPacker {
             pageFiles[i] = pageFile;
             PixmapIO.writePNG(pageFile, pixmap);
         }
-        // .fnt
         processFnt(data, pageFiles, fntFile, config);
         bitmapFont.dispose();
         return CODE_SUCCESS;
@@ -156,6 +154,25 @@ public class BitmapFontPacker {
      */
     private static void processFnt (BitmapFont.BitmapFontData data, FileHandle[] pageFiles, FileHandle fntFile, Configuration config) {
         boolean xml = config.fntFormat.equalsIgnoreCase("xml");
+        int aa;
+        switch (config.hinting) {
+            case None:
+            default:
+                aa = 0;
+                break;
+            case Slight:
+            case AutoSlight:
+                aa = 1;
+                break;
+            case Medium:
+            case AutoMedium:
+                aa = 2;
+                break;
+            case Full:
+            case AutoFull:
+                aa = 3;
+                break;
+        }
         StringBuilder builder = new StringBuilder();
         if (xml) {
             builder.append("<font>\n");
@@ -178,7 +195,7 @@ public class BitmapFontPacker {
                 .append("\" unicode=").append(quote(xml, config.unicode ? 1 : 0))
                 .append(" stretchH=").append(quote(xml, config.stretchH))
                 .append(" smooth=").append(quote(xml, !config.mono ? 1 : 0))
-                .append(" aa=").append(quote(xml, config.renderCount))
+                .append(" aa=").append(quote(xml, aa))
                 .append(" padding=")
                 .append(xmlQuote)
                 .append(config.padTop).append(",")
