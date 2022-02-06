@@ -17,7 +17,7 @@ import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
 
 @CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.0",
         description = "Generate BitmapFont from FreeType supported font file.")
-public class GdxBMFont implements Callable<Integer> {
+public class Lwjgl3GdxBMFont implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "The FreeType font file.")
     private File srcFile;
@@ -106,7 +106,7 @@ public class GdxBMFont implements Callable<Integer> {
             @Override
             public void create() {
                 super.create();
-                int exitCode = new CommandLine(new GdxBMFont())
+                int exitCode = new CommandLine(new Lwjgl3GdxBMFont())
                         .registerConverter(IntIntWrapper.class, new IntIntWrapperConverter())
                         .registerConverter(IntIntIntIntWrapper.class, new IntIntIntIntWrapperConverter())
                         .registerConverter(FntFormatWrapper.class, new FntFormatConverter())
