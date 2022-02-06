@@ -13,7 +13,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "gdx-bmfont 1.0.0",
+@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.0",
         description = "Generate BitmapFont from FreeType supported font file.")
 public class GdxBMFont implements Callable<Integer> {
 
@@ -25,11 +25,11 @@ public class GdxBMFont implements Callable<Integer> {
 
     @CommandLine.Option(names = {"-n", "--name"}, description = "The output file base name.")
     private String name;
-    @CommandLine.Option(names = {"-a", "--page-size"}, paramLabel = "<pageWidth,pageHeight>", description = "The size of each output image.")
+    @CommandLine.Option(names = {"-P", "--page-size"}, paramLabel = "<pageWidth,pageHeight>", description = "The size of each output image.")
     private IntIntWrapper pageSize;
-    @CommandLine.Option(names = {"-f", "--fnt-format"}, paramLabel = "<txt|xml|json>", description = "The output .fnt file format.")
+    @CommandLine.Option(names = {"-F", "--fnt-format"}, paramLabel = "<txt|xml|json>", description = "The output .fnt file format.")
     private String fntFormat;
-    @CommandLine.Option(names = {"-w", "--font-size"}, defaultValue = "16", showDefaultValue = CommandLine.Help.Visibility.NEVER,
+    @CommandLine.Option(names = {"-f", "--font-size"}, defaultValue = "16", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "The BitmapFont size in pixels.")
     private int size;
     @CommandLine.Option(names = {"-m", "--mono"}, description = "If true, font smoothing is disabled.")
@@ -56,13 +56,13 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = "--border-gamma", defaultValue = "1.8f", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Values < 1 increase the border size.")
     private float borderGamma;
-    @CommandLine.Option(names = {"-d", "--shadow-offsets"}, paramLabel = "<shadowOffsetX,shadowOffsetY>",
+    @CommandLine.Option(names = {"-s", "--shadow-offsets"}, paramLabel = "<shadowOffsetX,shadowOffsetY>",
             description = "Offsets of text shadow on X and Y axis in pixels, 0 to disable.")
     private IntIntWrapper shadowOffsets;
 
     public Color shadowColor = new Color(0, 0, 0, 0.75f);
 
-    @CommandLine.Option(names = {"-s", "--spacing"}, paramLabel = "<spaceX,spaceY>",
+    @CommandLine.Option(names = {"-S", "--spacing"}, paramLabel = "<spaceX,spaceY>",
             description = "Pixels to add to glyph spacing when text is rendered.")
     private IntIntWrapper spacing;
     @CommandLine.Option(names = {"-p", "--paddings"}, paramLabel = "<padTop,padLeft,padBottom,padRight>",
