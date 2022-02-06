@@ -8,10 +8,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.utils.Array;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.util.concurrent.Callable;
+
+import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
 
 @CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.0",
         description = "Generate BitmapFont from FreeType supported font file.")
@@ -27,8 +30,8 @@ public class GdxBMFont implements Callable<Integer> {
     private String name;
     @CommandLine.Option(names = {"-P", "--page-size"}, paramLabel = "<pageWidth,pageHeight>", description = "The size of each output image.")
     private IntIntWrapper pageSize;
-    @CommandLine.Option(names = {"-F", "--fnt-format"}, paramLabel = "<txt|xml|json>", description = "The output .fnt file format.")
-    private String fntFormat;
+    @CommandLine.Option(names = {"-F", "--fnt-format"}, paramLabel = "<txt|xml>", description = "The output .fnt file format.")
+    private FntFormatWrapper fntFormat;
     @CommandLine.Option(names = {"-f", "--font-size"}, defaultValue = "16", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "The BitmapFont size in pixels.")
     private int size;
@@ -104,6 +107,7 @@ public class GdxBMFont implements Callable<Integer> {
                 int exitCode = new CommandLine(new GdxBMFont())
                         .registerConverter(IntIntWrapper.class, new IntIntWrapperConverter())
                         .registerConverter(IntIntIntIntWrapper.class, new IntIntIntIntWrapperConverter())
+                        .registerConverter(FntFormatWrapper.class, new FntFormatConverter())
                         .execute(args);
                 System.exit(exitCode);
             }
@@ -121,7 +125,7 @@ public class GdxBMFont implements Callable<Integer> {
         settings.borderGamma = borderGamma;
         settings.borderStraight = borderStraight;
         if (stringNotEmpty(characters)) settings.characters = characters;
-        if (stringNotEmpty(fntFormat)) settings.fntFormat = fntFormat;
+        if (fntFormat != null) settings.fntFormat = fntFormat.format;
         settings.flip = flip;
         settings.gamma = gamma;
         settings.incremental = incremental;
@@ -144,7 +148,7 @@ public class GdxBMFont implements Callable<Integer> {
             settings.shadowOffsetY = shadowOffsets.arg1;
         }
         settings.size = size;
-        int result = BMFontPacker.generate(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), settings, override);
+        int result = BMFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), settings, override);
         if (result == BMFontPacker.CODE_FILE_EXISTS) {
             System.err.println("BitmapFont file(s) already exists.");
             return 1;
@@ -170,6 +174,13 @@ public class GdxBMFont implements Callable<Integer> {
         }
     }
 
+    private static class FntFormatWrapper {
+        String format;
+        public FntFormatWrapper(String format) {
+            this.format = format;
+        }
+    }
+
     private static class IntIntWrapperConverter implements CommandLine.ITypeConverter<IntIntWrapper> {
         @Override
         public IntIntWrapper convert(String value) throws Exception {
@@ -189,8 +200,14 @@ public class GdxBMFont implements Callable<Integer> {
         }
     }
 
-    private static boolean stringNotEmpty(String s) {
-        return s != null && s.length() > 0;
+    private static class FntFormatConverter implements CommandLine.ITypeConverter<FntFormatWrapper> {
+        @Override
+        public FntFormatWrapper convert(String value) throws Exception {
+            Array<String> allowed = new Array<>(2);
+            allowed.addAll("txt, xml");
+            if (!allowed.contains(value.toLowerCase(), false)) return new FntFormatWrapper(value);
+            else throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+        }
     }
 
 }
