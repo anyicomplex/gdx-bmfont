@@ -65,7 +65,8 @@ public class BitmapFontPacker {
 
     public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
         if (config == null) error("Configuration cannot be null.");
-        verbose("Generating BitmapFont config...");
+        verbose("Process begin.");
+        verbose("Generating FreeType config...");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
         if (config.pageWidth != -1 && config.pageHeight != -1) {
@@ -80,39 +81,50 @@ public class BitmapFontPacker {
                 }
             }
         }
-        verbose("Generating BitmapFont object...");
+        verbose("FreeType config generated successfully.");
+        verbose("Generating BitmapFont data...");
         FreeTypeFontGenerator.FreeTypeBitmapFontData data = new FreeTypeFontGenerator.FreeTypeBitmapFontData();
         BitmapFont bitmapFont = generator.generateFont(parameter, data);
+        verbose("BitmapFont data generated successfully.");
         String fileName;
         if (config.name == null || config.name.length() < 1) fileName = srcFile.nameWithoutExtension();
         else fileName = config.name;
-        verbose("Checking whether BitmapFont file exists...");
-        for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
-            FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName +
-                    (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
-            if (pageFile.exists() && !override) {
-                bitmapFont.dispose();
-                return CODE_FILE_EXISTS;
-            }
-        }
-        FileHandle fntFile = Gdx.files.absolute(dstDir.path() + "/" + fileName + ".fnt");
-        if (fntFile.exists() && !override) {
-            bitmapFont.dispose();
-            return CODE_FILE_EXISTS;
-        }
-        verbose("Generating BitmapFont .png file...");
         FileHandle[] pageFiles = new FileHandle[bitmapFont.getRegions().size];
+        verbose("Glyph page amount: " + pageFiles.length);
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
-            Pixmap pixmap = bitmapFont.getRegion(i).getTexture().getTextureData().consumePixmap();
             FileHandle pageFile = Gdx.files.absolute(dstDir.path() + "/" + fileName +
                     (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
             pageFiles[i] = pageFile;
-            PixmapIO.writePNG(pageFile, pixmap);
         }
-        verbose("Generating BitmapFont .fnt file...");
+        FileHandle fntFile = Gdx.files.absolute(dstDir.path() + "/" + fileName + ".fnt");
+        if (!override) {
+            verbose("Checking whether files exists...");
+            for (FileHandle pageFile : pageFiles) {
+                if (pageFile.exists()) {
+                    bitmapFont.dispose();
+                    return CODE_FILE_EXISTS;
+                }
+                verbose(pageFile.path() + " does not exist, pass.");
+            }
+            if (fntFile.exists()) {
+                bitmapFont.dispose();
+                return CODE_FILE_EXISTS;
+            }
+            verbose(fntFile.path() + " does not exist, pass.");
+        }
+        verbose("Generating glyph page files...");
+        for (int i = 0; i < pageFiles.length; i ++) {
+            verbose("Rendering page [" + (i + 1) + "/" + bitmapFont.getRegions().size + "]");
+            Pixmap pixmap = bitmapFont.getRegion(i).getTexture().getTextureData().consumePixmap();
+            PixmapIO.writePNG(pageFiles[i], pixmap);
+            verbose("File generated successfully at: " + pageFiles[i].path());
+        }
+        verbose("Generating .fnt file...");
         processFnt(data, pageFiles, fntFile, config);
+        verbose("File generated successfully at: " + fntFile.path());
         verbose("Cleaning up...");
         bitmapFont.dispose();
+        verbose("Done.");
         return CODE_SUCCESS;
     }
 
