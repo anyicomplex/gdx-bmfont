@@ -1,9 +1,7 @@
 allprojects {
     apply plugin: "java"
-
     group 'io.github.anyicomplex'
     version '1.0.0'
-
     repositories {
         mavenCentral()
     }
@@ -18,11 +16,9 @@ allprojects {
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     }
-
     test {
         useJUnitPlatform()
     }
-
 }
 
 subprojects {
@@ -31,22 +27,29 @@ subprojects {
     }
 }
 
-project(":lwjgl3:cli") {
-    dependencies {
-        implementation "info.picocli:picocli:$picocliVersion"
-        annotationProcessor "info.picocli:picocli-codegen:$picocliVersion"
-    }
-}
-
 project(":lwjgl3") {
+    project("cli") {
+        ext.mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
+        dependencies {
+            implementation "info.picocli:picocli:$picocliVersion"
+            annotationProcessor "info.picocli:picocli-codegen:$picocliVersion"
+        }
+    }
+    project("gui") {
+        ext.mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
+        dependencies {
+        }
+    }
     subprojects {
+        apply plugin: "application"
+        mainClassName = ext.mainClassName
         dependencies {
             implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
             implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
             implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
         }
-        ext.mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
         jar {
+            archiveBaseName.set(rootProject.name)
             duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
             dependsOn configurations.runtimeClasspath
             from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -59,6 +62,16 @@ project(":lwjgl3") {
             }
             doLast {
                 file(archiveFile).setExecutable(true, false)
+            }
+        }
+        run {
+            dependsOn(jar)
+            classpath = files('build/libs/' + rootProject.name + '-' + project.version + '.jar')
+            setIgnoreExitValue(true)
+            def os = System.properties['os.name'].toLowerCase()
+            if (os.contains('mac')) {
+                // Required to run LWJGL3 Java apps on MacOS
+                jvmArgs += "-XstartOnFirstThread"
             }
         }
     }
