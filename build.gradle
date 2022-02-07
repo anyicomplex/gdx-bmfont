@@ -1,5 +1,5 @@
 allprojects {
-    apply plugin: "java-library"
+    apply plugin: 'java-library'
     group 'io.github.anyicomplex'
     version '1.0.0'
     sourceCompatibility = 1.8
@@ -33,8 +33,8 @@ subprojects {
 }
 
 project(":lwjgl3") {
-    apply plugin: "application"
-    mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
+    apply plugin: 'application'
+    mainClassName = 'com.anyicomplex.gdx.tools.bmfont.GdxBMFont'
     dependencies {
         implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
         implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
@@ -66,8 +66,8 @@ project(":lwjgl3") {
         def os = System.properties['os.name'].toLowerCase()
         if (os.contains('mac')) {
             // Required to run LWJGL3 Java apps on MacOS
-            jvmArgs += "-XstartOnFirstThread"
+            jvmArgs += '-XstartOnFirstThread'
         }
-        args += "--help"
+        args += '--help'
     }
 }
