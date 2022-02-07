@@ -2,5 +2,3 @@
 /.gradle/
 /build/
 /lwjgl3/build
-/lwjgl3/cli/build
-/lwjgl3/gui/build

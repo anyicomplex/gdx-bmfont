@@ -1,4 +1,5 @@
-import com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker;
+package com.anyicomplex.gdx.tools.bmfont;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;

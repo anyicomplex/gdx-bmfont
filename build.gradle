@@ -28,51 +28,41 @@ subprojects {
 }
 
 project(":lwjgl3") {
-    project("cli") {
-        ext.mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
+    apply plugin: "application"
+    mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
+    dependencies {
+        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+
+        implementation "info.picocli:picocli:$picocliVersion"
+        annotationProcessor "info.picocli:picocli-codegen:$picocliVersion"
+    }
+    jar {
+        archiveBaseName.set(rootProject.name)
+        duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+        dependsOn configurations.runtimeClasspath
+        from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+        exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
         dependencies {
-            implementation "info.picocli:picocli:$picocliVersion"
-            annotationProcessor "info.picocli:picocli-codegen:$picocliVersion"
+            exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
+        }
+        manifest {
+            attributes 'Main-Class': project.mainClassName
+        }
+        doLast {
+            file(archiveFile).setExecutable(true, false)
         }
     }
-    project("gui") {
-        ext.mainClassName = "com.anyicomplex.gdx.tools.bmfont.GdxBMFont"
-        dependencies {
+    run {
+        dependsOn(jar)
+        classpath = files('build/libs/' + rootProject.name + '-' + project.version + '.jar')
+        setIgnoreExitValue(true)
+        def os = System.properties['os.name'].toLowerCase()
+        if (os.contains('mac')) {
+            // Required to run LWJGL3 Java apps on MacOS
+            jvmArgs += "-XstartOnFirstThread"
         }
-    }
-    subprojects {
-        apply plugin: "application"
-        mainClassName = ext.mainClassName
-        dependencies {
-            implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-            implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-            implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
-        }
-        jar {
-            archiveBaseName.set(rootProject.name)
-            duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-            dependsOn configurations.runtimeClasspath
-            from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-            exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
-            dependencies {
-                exclude('META-INF/INDEX.LIST', 'META-INF/maven/**')
-            }
-            manifest {
-                attributes 'Main-Class': project.mainClassName
-            }
-            doLast {
-                file(archiveFile).setExecutable(true, false)
-            }
-        }
-        run {
-            dependsOn(jar)
-            classpath = files('build/libs/' + rootProject.name + '-' + project.version + '.jar')
-            setIgnoreExitValue(true)
-            def os = System.properties['os.name'].toLowerCase()
-            if (os.contains('mac')) {
-                // Required to run LWJGL3 Java apps on MacOS
-                jvmArgs += "-XstartOnFirstThread"
-            }
-        }
+        args += "--help"
     }
 }
