@@ -28,7 +28,7 @@ class Utils {
     }
 
     static String readCharsFromFiles(FileHandle... files) {
-        return readCharsFromFiles("UTF-8", files);
+        return readCharsFromFiles(null, files);
     }
 
     static String readCharsFromFiles(String charset, FileHandle... files) {

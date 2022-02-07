@@ -12,17 +12,18 @@ import com.badlogic.gdx.utils.Array;
 import picocli.CommandLine;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import static com.anyicomplex.gdx.tools.bmfont.Utils.*;
 
-@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.0",
+@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.1",
         description = "Generate BitmapFont from FreeType supported font file.")
 public class GdxBMFont implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "The FreeType font file.")
+    @CommandLine.Parameters(index = "0", description = "The FreeType supported font file.")
     private File srcFile;
-    @CommandLine.Parameters(index = "1", description = "The output directory.")
+    @CommandLine.Parameters(index = "1", description = "The BitmapFont output directory.")
     private File dstDir;
 
     @CommandLine.Option(names = {"-n", "--name"}, description = "The output file base name.")
@@ -95,6 +96,8 @@ public class GdxBMFont implements Callable<Integer> {
     @CommandLine.Option(names = {"-o", "--override"}, defaultValue = "false",
             description = "Whether override exist file")
     private boolean override;
+    @CommandLine.Option(names = "--charset", description = "The charset will be used to parse characters files.")
+    private Charset charset;
 
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable verbose output.")
     private volatile static boolean VERBOSE;
@@ -141,7 +144,7 @@ public class GdxBMFont implements Callable<Integer> {
             for (int i = 0; i < files.length; i ++) {
                 files[i] = Gdx.files.absolute(charactersFiles[i].getAbsolutePath());
             }
-            config.characters = removeDuplicateChars(config.characters + readCharsFromFiles(files));
+            config.characters = removeDuplicateChars(config.characters + readCharsFromFiles(charset == null ? null : charset.name(), files));
             verbose("Characters files parsed successfully.");
         }
         if (fntFormat != null) config.fntFormat = fntFormat.format;
@@ -267,6 +270,13 @@ public class GdxBMFont implements Callable<Integer> {
                 if (filter.name().toLowerCase().equals(value)) return filter;
             }
             throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+        }
+    }
+
+    private static class CharsetConverter implements CommandLine.ITypeConverter<Charset> {
+        @Override
+        public Charset convert(String value) throws Exception {
+            return Charset.forName(value);
         }
     }
 
