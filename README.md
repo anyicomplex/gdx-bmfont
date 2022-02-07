@@ -1,6 +1,7 @@
 # gdx-bmfont
 CLI BitmapFont Packer Tool powered by Java, libGDX &amp; Picocli.
 
+## Usage
 ```sh
 sh-5.1$ java -jar gdx-bmfont-1.0.0.jar --help
 Usage: gdx-bmfont [-hikmMovV] [--border-straight] [--flip] [-b=<borderWidth>]
@@ -47,7 +48,7 @@ Generate BitmapFont from FreeType supported font file.
   -H, --hinting=<none|slight|medium|full|autoSlight|autoMedium|autoFull>
                            Strength of hinting.
   -i, --incremental        When true, glyphs are rendered on the fly to the
-                             font's glyph page textures as they are needed.
+                             font\'s glyph page textures as they are needed.
   -k, --kerning            Whether the font should include kerning.
   -m, --mono               If true, font smoothing is disabled.
   -M, --gen-mipmaps        Whether to generate mip maps for the resulting
@@ -66,7 +67,7 @@ Generate BitmapFont from FreeType supported font file.
                            The size of each output image.
   -r, --render-count=<renderCount>
                            Number of times to render the glyph. Useful with a
-                             shadow or border, so it doesn't show through the
+                             shadow or border, so it doesn\'t show through the
                              glyph.
   -s, --shadow-offsets=<shadowOffsetX,shadowOffsetY>
                            Offsets of text shadow on X and Y axis in pixels, 0
@@ -82,3 +83,6 @@ Generate BitmapFont from FreeType supported font file.
   -v, --verbose            Enable verbose output.
   -V, --version            Print version information and exit.
 ```
+
+## License
+[Apache-2.0](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
