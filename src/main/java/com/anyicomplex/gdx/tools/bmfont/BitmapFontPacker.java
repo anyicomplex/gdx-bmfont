@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.StringBuilder;
 
 import static com.anyicomplex.gdx.tools.bmfont.Utils.quote;
 import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
@@ -149,13 +150,13 @@ public class BitmapFontPacker {
 
     private static void verbose(String message) {
         if (stringNotEmpty(message) && VERBOSE) {
-            System.out.println("[BitmapFontPacker] " + message);
+            Utils.verbose("[BitmapFontPacker] " + message);
         }
     }
 
     private static void error(String message) {
         if (stringNotEmpty(message)) {
-            System.err.println("[BitmapFontPacker] " + message);
+            Utils.error("[BitmapFontPacker] " + message);
         }
     }
 

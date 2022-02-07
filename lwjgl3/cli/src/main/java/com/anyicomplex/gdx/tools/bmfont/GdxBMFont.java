@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -13,7 +14,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
+import static com.anyicomplex.gdx.tools.bmfont.Utils.*;
 
 @CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.0",
         description = "Generate BitmapFont from FreeType supported font file.")
@@ -72,6 +73,8 @@ public class GdxBMFont implements Callable<Integer> {
     private IntIntIntIntWrapper paddings;
     @CommandLine.Option(names = {"-c", "--characters"}, description = "The characters the font should contain.")
     private String characters;
+    @CommandLine.Option(names = "--characters-files", paramLabel = "<charactersFile|charactersDir>", arity = "1..*", description = "The characters files and dirs will be read recursively.")
+    private File[] charactersFiles;
     @CommandLine.Option(names = {"-k", "--kerning"}, defaultValue = "true", showDefaultValue = CommandLine.Help.Visibility.NEVER,
             description = "Whether the font should include kerning.")
     private boolean kerning;
@@ -94,7 +97,7 @@ public class GdxBMFont implements Callable<Integer> {
     private boolean override;
 
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable verbose output.")
-    private boolean verbose;
+    private volatile static boolean VERBOSE;
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
@@ -102,6 +105,7 @@ public class GdxBMFont implements Callable<Integer> {
         configuration.setDecorated(false);
         configuration.setWindowedMode(1, 1);
         configuration.disableAudio(true);
+        platformUtils = new Lwjgl3PlatformUtils();
         new Lwjgl3Application(new ApplicationAdapter() {
             @Override
             public void create() {
@@ -121,6 +125,7 @@ public class GdxBMFont implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
+        verbose("Generating BitmapFontPacker config...");
         BitmapFontPacker.Configuration config = new BitmapFontPacker.Configuration();
         if (pageSize != null) {
             config.pageWidth = pageSize.arg0;
@@ -130,6 +135,15 @@ public class GdxBMFont implements Callable<Integer> {
         config.borderGamma = borderGamma;
         config.borderStraight = borderStraight;
         if (stringNotEmpty(characters)) config.characters = characters;
+        if (charactersFiles != null) {
+            verbose("Parsing characters files...");
+            FileHandle[] files = new FileHandle[charactersFiles.length];
+            for (int i = 0; i < files.length; i ++) {
+                files[i] = Gdx.files.absolute(charactersFiles[i].getAbsolutePath());
+            }
+            config.characters = removeDuplicateChars(config.characters + readCharsFromFiles(files));
+            verbose("Characters files parsed successfully.");
+        }
         if (fntFormat != null) config.fntFormat = fntFormat.format;
         config.flip = flip;
         config.gamma = gamma;
@@ -160,10 +174,16 @@ public class GdxBMFont implements Callable<Integer> {
         if (minFilter != null) config.minFilter = minFilter;
         if (magFilter != null) config.magFilter = magFilter;
         config.genMipMaps = genMipMaps;
-        BitmapFontPacker.VERBOSE = verbose;
+        BitmapFontPacker.VERBOSE = VERBOSE;
+        verbose("BitmapFontPacker config generated successfully.");
+        verbose("Processing BitmapFontPacker...");
         int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
-        if (result == BitmapFontPacker.CODE_FILE_EXISTS) return 1;
-        return 0;
+        if (result != BitmapFontPacker.CODE_SUCCESS) {
+            error("BitmapFontPacker processed failed with exit code " + result + ".");
+            return result;
+        }
+        verbose("BitmapFontPacker processed successfully.");
+        return result;
     }
 
     private static class IntIntWrapper {
@@ -247,6 +267,18 @@ public class GdxBMFont implements Callable<Integer> {
                 if (filter.name().toLowerCase().equals(value)) return filter;
             }
             throw new CommandLine.TypeConversionException("Parameter type mismatch!");
+        }
+    }
+
+    private static void verbose(String message) {
+        if (stringNotEmpty(message) && VERBOSE) {
+            Utils.verbose("[GdxBMFont] " + message);
+        }
+    }
+
+    private static void error(String message) {
+        if (stringNotEmpty(message) && VERBOSE) {
+            Utils.error("[GdxBMFont] " + message);
         }
     }
 
