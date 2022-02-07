@@ -1,7 +1,7 @@
-# gdx-bmfont
+# gdx-bmfont [![Java CI with Gradle](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml/badge.svg)](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml) [![License](https://img.shields.io/github/license/anyicomplex/gdx-bmfont)](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
+
 CLI BitmapFont Packer Tool powered by Java, libGDX &amp; Picocli.
 
-## Usage
 ```sh
 sh-5.1$ java -jar gdx-bmfont-1.0.0.jar --help
 Usage: gdx-bmfont [-hikmMovV] [--border-straight] [--flip] [-b=<borderWidth>]
@@ -83,6 +83,3 @@ Generate BitmapFont from FreeType supported font file.
   -v, --verbose            Enable verbose output.
   -V, --version            Print version information and exit.
 ```
-
-## License
-[Apache-2.0](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
