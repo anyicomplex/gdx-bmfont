@@ -1,7 +1,8 @@
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     group 'io.github.anyicomplex'
     version '1.0.0'
+    sourceCompatibility = 1.8
     repositories {
         mavenCentral()
     }
@@ -19,6 +20,10 @@ allprojects {
     test {
         useJUnitPlatform()
     }
+}
+
+jar {
+    archiveBaseName.set("core")
 }
 
 subprojects {
