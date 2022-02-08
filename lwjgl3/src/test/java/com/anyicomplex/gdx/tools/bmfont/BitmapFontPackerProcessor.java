@@ -43,7 +43,7 @@ public class BitmapFontPackerProcessor {
                 int exitCode = BitmapFontPacker.process(
                         Gdx.files.absolute(System.getProperty("user.home") + "/test.ttf"),
                         fntDir, configuration1, true);
-                if (exitCode != BitmapFontPacker.CODE_SUCCESS) System.exit(exitCode);
+                if (exitCode != BitmapFontPacker.ExitCode.SUCCESS) System.exit(exitCode);
                 font = new BitmapFont(fntDir.child("test.fnt"));
                 batch = new SpriteBatch();
             }

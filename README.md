@@ -3,7 +3,7 @@
 CLI BitmapFont packer tool powered by Java, libGDX &amp; Picocli.
 
 ```sh
-sh-5.1$ java -jar gdx-bmfont-1.0.3.jar --help
+sh-5.1$ java -jar gdx-bmfont-1.0.4.jar --help
 Usage: gdx-bmfont [-hikmMovV] [--border-straight] [--flip] [-b=<borderWidth>]
                   [--border-color=<borderColor>] [--border-gamma=<borderGamma>]
                   [-c=<characters>] [-C=<color>] [--charset=<charset>]
@@ -84,5 +84,5 @@ Generate BitmapFont from FreeType supported font file.
                               FFFFFF.
   -v, --verbose             Enable verbose output.
   -V, --version             Print version information and exit.
-sh-5.1$ 
+sh-5.1$
 ```

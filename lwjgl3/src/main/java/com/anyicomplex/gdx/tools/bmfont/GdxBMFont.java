@@ -31,9 +31,9 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
-import static com.anyicomplex.gdx.tools.bmfont.Utils.*;
+import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.*;
 
-@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.3",
+@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.4",
         description = "Generate BitmapFont from FreeType supported font file.")
 public class GdxBMFont implements Callable<Integer> {
 
@@ -117,6 +117,7 @@ public class GdxBMFont implements Callable<Integer> {
 
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable verbose output.")
     private static volatile boolean VERBOSE;
+    public static final String TAG = "GdxBMFont";
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
@@ -124,7 +125,7 @@ public class GdxBMFont implements Callable<Integer> {
         configuration.setDecorated(false);
         configuration.setWindowedMode(1, 1);
         configuration.disableAudio(true);
-        platformUtils = new Lwjgl3PlatformUtils();
+        BitmapFontPacker.platformSupport = new Lwjgl3PlatformSupport();
         new Lwjgl3Application(new ApplicationAdapter() {
             @Override
             public void create() {
@@ -197,7 +198,7 @@ public class GdxBMFont implements Callable<Integer> {
         verbose("BitmapFontPacker config generated successfully.");
         verbose("Processing BitmapFontPacker...");
         int result = BitmapFontPacker.process(Gdx.files.absolute(inputFile.getAbsolutePath()), Gdx.files.absolute(outputDir.getAbsolutePath()), config, override);
-        if (result != BitmapFontPacker.CODE_SUCCESS) {
+        if (result != BitmapFontPacker.ExitCode.SUCCESS) {
             error("BitmapFontPacker processed failed with exit code " + result + ".");
             return result;
         }
@@ -289,23 +290,12 @@ public class GdxBMFont implements Callable<Integer> {
         }
     }
 
-    private static class CharsetConverter implements CommandLine.ITypeConverter<Charset> {
-        @Override
-        public Charset convert(String value) throws Exception {
-            return Charset.forName(value);
-        }
-    }
-
     private static void verbose(String message) {
-        if (stringNotEmpty(message) && VERBOSE) {
-            Utils.verbose("[GdxBMFont] " + message);
-        }
+        if (VERBOSE) BitmapFontPacker.Utils.verbose(TAG, message);
     }
 
     private static void error(String message) {
-        if (stringNotEmpty(message) && VERBOSE) {
-            Utils.error("[GdxBMFont] " + message);
-        }
+        BitmapFontPacker.Utils.error(TAG, message);
     }
 
 }

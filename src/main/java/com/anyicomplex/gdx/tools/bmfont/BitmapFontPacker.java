@@ -16,6 +16,7 @@
 
 package com.anyicomplex.gdx.tools.bmfont;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -29,56 +30,146 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.StringBuilder;
 
-import static com.anyicomplex.gdx.tools.bmfont.Utils.quote;
-import static com.anyicomplex.gdx.tools.bmfont.Utils.stringNotEmpty;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
+import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.quote;
+import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.stringNotEmpty;
+
+/**
+ * <p>BitmapFont packer library based on libGDX's FreeType wrapper.</p>
+ * <p><b>NOTE should be used after libGDX initialization.</b></p>
+ * @author Yi An
+ *
+ */
 public class BitmapFontPacker {
 
-    public static final int CODE_SUCCESS = 0;
-    public static final int CODE_FILE_EXISTS = 1;
+    /**
+     * Process's exit codes.
+     * @see BitmapFontPacker#process(FileHandle, FileHandle, Configuration, boolean)
+     */
+    public static class ExitCode {
+        private ExitCode(){}
+        public static final int SUCCESS = 0;
+        public static final int FILE_EXISTS = 1;
+    }
 
+    /** Whether enable the verbose output. */
     public static volatile boolean VERBOSE = false;
+    /** The PlatformSupport handle. */
+    public static volatile PlatformSupport platformSupport = new BitmapFontPacker.PlatformSupport(){};
 
+    /** The log tag. */
+    public static final String TAG = "BitmapFontPacker";
+
+    /**
+     * Configuration of the packing process.
+     * @see PixmapPacker
+     * @see FreeTypeFontGenerator.FreeTypeFontParameter
+     * @see FreeTypeFontGenerator.Hinting
+     * @see Texture.TextureFilter
+     */
     public static class Configuration {
+        /** The output font name. Default the input file's name. */
         public String name = null;
+
+        /** Glyph page width. -1 to auto-calculate. */
         public int pageWidth = -1;
+        /** Glyph page height. -1 to auto-calculate. */
         public int pageHeight = -1;
+
+        /** Format of the .fnt file */
         public String fntFormat = "txt";
+        /** Whether the font is bold */
         public boolean bold = false;
+        /** Whether the font is italic */
         public boolean italic = false;
+        /** Whether the font uses unicode glyphs */
         public boolean unicode = true;
+        /** Stretch for height; default to 100% */
         public int stretchH = 100;
+        /** The charset; or null/empty for default */
         public String charset;
 
+        /** The size in pixels */
         public int size = 16;
+        /** If true, font smoothing is disabled. */
         public boolean mono;
+        /** Strength of hinting */
         public FreeTypeFontGenerator.Hinting hinting = FreeTypeFontGenerator.Hinting.AutoMedium;
+        /** Foreground color (required for non-black borders) */
         public Color color = Color.WHITE;
+        /** Glyph gamma. Values &gt; 1 reduce antialiasing. */
         public float gamma = 1.8f;
+        /** Number of times to render the glyph. Useful with a shadow or border, so it doesn't show through the glyph. */
         public int renderCount = 2;
+        /** Border width in pixels, 0 to disable */
         public float borderWidth = 0;
+        /** Border color; only used if borderWidth &gt; 0 */
         public Color borderColor = Color.BLACK;
+        /** true for straight (mitered), false for rounded borders */
         public boolean borderStraight = false;
+        /** Values &lt; 1 increase the border size. */
         public float borderGamma = 1.8f;
+        /** Offset of text shadow on X axis in pixels, 0 to disable */
         public int shadowOffsetX = 0;
+        /** Offset of text shadow on Y axis in pixels, 0 to disable */
         public int shadowOffsetY = 0;
+        /** Shadow color; only used if shadowOffset &gt; 0. If alpha component is 0, no shadow is drawn but characters are still offset
+         * by shadowOffset. */
         public Color shadowColor = new Color(0, 0, 0, 0.75f);
+        /** Pixels to add to glyph spacing when text is rendered. Can be negative. */
         public int spaceX, spaceY;
+        /** Pixels to add to the glyph in the texture. Cannot be negative. */
         public int padTop, padLeft, padBottom, padRight;
+        /** The characters the font should contain. If '\0' is not included then {@link BitmapFont.BitmapFontData#missingGlyph} is not set. */
         public String characters = FreeTypeFontGenerator.DEFAULT_CHARS;
+        /** Whether the font should include kerning */
         public boolean kerning = true;
+        /** The optional PixmapPacker to use for packing multiple fonts into a single texture.
+         * @see FreeTypeFontGenerator.FreeTypeFontParameter */
         public PixmapPacker packer = null;
+        /** Whether to flip the font vertically */
         public boolean flip = false;
+        /** Whether to generate mip maps for the resulting texture */
         public boolean genMipMaps = false;
+        /** Minification filter */
         public Texture.TextureFilter minFilter = Texture.TextureFilter.Nearest;
+        /** Magnification filter */
         public Texture.TextureFilter magFilter = Texture.TextureFilter.Nearest;
+        /** When true, glyphs are rendered on the fly to the font's glyph page textures as they are needed. The
+         * FreeTypeFontGenerator must not be disposed until the font is no longer needed. The FreeTypeBitmapFontData must be
+         * disposed (separately from the generator) when the font is no longer needed. The FreeTypeFontParameter should not be
+         * modified after creating a font. If a PixmapPacker is not specified, the font glyph page textures will use
+         * {@link FreeTypeFontGenerator#getMaxTextureSize()}. */
         public boolean incremental;
     }
 
+    /**
+     * Process the input file into BitmapFont to the output directory, if the file exists, override it.
+     *
+     * @see BitmapFontPacker#process(FileHandle, FileHandle, Configuration, boolean)
+     *
+     * @param inputFile the FreeType supported font file
+     * @param outputDir the BitmapFont output directory
+     * @param config the processor configuration
+     * @return exit code
+     */
     public static int process(FileHandle inputFile, FileHandle outputDir, Configuration config) {
         return process(inputFile, outputDir, config, true);
     }
 
+    /**
+     * Process the input file into BitmapFont to the output directory.
+     *
+     * @see ExitCode
+     *
+     * @param inputFile the FreeType supported font file
+     * @param outputDir the BitmapFont output directory
+     * @param config the processor configuration
+     * @param override whether override if file exists
+     * @return exit code
+     */
     public static int process(FileHandle inputFile, FileHandle outputDir, Configuration config, boolean override) {
         verbose("Process begin.");
         verbose("Checking parameters...");
@@ -126,7 +217,7 @@ public class BitmapFontPacker {
                 if (pageFile.exists()) {
                     try {
                         error("BitmapFont files already exists.");
-                        return CODE_FILE_EXISTS;
+                        return ExitCode.FILE_EXISTS;
                     }
                     finally {
                         verbose("Cleaning up...");
@@ -139,7 +230,7 @@ public class BitmapFontPacker {
             if (fntFile.exists()) {
                 try {
                     error("BitmapFont files already exists.");
-                    return CODE_FILE_EXISTS;
+                    return ExitCode.FILE_EXISTS;
                 }
                 finally {
                     verbose("Cleaning up...");
@@ -162,24 +253,19 @@ public class BitmapFontPacker {
         verbose("Cleaning up...");
         bitmapFont.dispose();
         verbose("Done.");
-        return CODE_SUCCESS;
-    }
-
-    private static void exception(String message) {
-        if (message == null) throw new GdxRuntimeException((String) null);
-        throw new GdxRuntimeException("[BitmapFontPacker] " + message);
+        return ExitCode.SUCCESS;
     }
 
     private static void verbose(String message) {
-        if (stringNotEmpty(message) && VERBOSE) {
-            Utils.verbose("[BitmapFontPacker] " + message);
-        }
+        if (VERBOSE) Utils.verbose(TAG, message);
     }
 
     private static void error(String message) {
-        if (stringNotEmpty(message)) {
-            Utils.error("[BitmapFontPacker] " + message);
-        }
+        Utils.error(TAG, message);
+    }
+
+    private static void exception(String message) {
+        Utils.exception(TAG, message);
     }
 
     private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Configuration config) {
@@ -375,6 +461,96 @@ public class BitmapFontPacker {
         charset = charset == null ? null : (charset.length() == 0 ? null : charset);
 
         fntFile.writeString(buf.toString(), false, charset);
+    }
+
+    /**
+     * For multi-platform adaptation.
+     */
+    public interface PlatformSupport {
+
+        /**
+         * Output a verbose message.
+         * @param tag the tag
+         * @param message the message
+         */
+        default void verbose(String tag, String message) {
+            Gdx.app.log(tag, message);
+        }
+
+        /**
+         * Output an error message.
+         * @param tag the tag
+         * @param message the message
+         */
+        default void error(String tag, String message) {
+            Gdx.app.error(tag, message);
+        }
+
+        /**
+         * Throw a runtime exception with message.
+         * @param tag the tag
+         * @param message the message
+         */
+        default void exception(String tag, String message) {
+            throw new GdxRuntimeException("[" + tag + "] " + message);
+        }
+
+    }
+
+    static class Utils {
+
+        static boolean stringNotEmpty(String s) {
+            return s != null && s.length() > 0;
+        }
+        /*******************************************************************************
+         * Source: https://github.com/libgdx/libgdx/blob/gdx-parent-1.10.0/extensions/gdx-tools/src/com/badlogic/gdx/tools/bmfont/BitmapFontWriter#quote
+         * AUTHORS file: https://github.com/libgdx/libgdx/blob/gdx-parent-1.10.0/AUTHORS
+         *
+         * Copyright 2011 See AUTHORS file.
+         *
+         * Licensed under the Apache License, Version 2.0 (the "License");
+         * you may not use this file except in compliance with the License.
+         * You may obtain a copy of the License at
+         *
+         *   http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an "AS IS" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         ******************************************************************************/
+        static String quote(boolean xml, Object param) {
+            return quote(xml, param, false);
+        }
+        static String quote(boolean xml, Object param, boolean spaceAfter) {
+            if (xml) return "\"" + param.toString().trim() + "\"" + (spaceAfter ? " " : "");
+            return param.toString();
+        }
+        static String readCharsFromFiles(FileHandle... files) {
+            return readCharsFromFiles(null, files);
+        }
+        static String readCharsFromFiles(String charset, FileHandle... files) {
+            StringBuilder builder = new StringBuilder();
+            for (FileHandle file : files) {
+                if (file.isDirectory()) builder.append(readCharsFromFiles(charset, file.list()));
+                else builder.append(file.readString(charset));
+            }
+            return removeDuplicateChars(builder.toString());
+        }
+        static String removeDuplicateChars(String string) {
+            return Arrays.stream(string.split("")).distinct().collect(Collectors.joining());
+        }
+        static void verbose(String tag, String message) {
+            platformSupport.verbose(tag, message);
+        }
+        static void error(String tag, String message) {
+            platformSupport.error(tag, message);
+        }
+        static void exception(String tag, String message) {
+            platformSupport.exception(tag, message);
+        }
+
     }
 
 }

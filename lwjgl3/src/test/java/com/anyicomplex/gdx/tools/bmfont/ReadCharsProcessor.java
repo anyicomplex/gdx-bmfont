@@ -21,7 +21,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
-import static com.anyicomplex.gdx.tools.bmfont.Utils.readCharsFromFiles;
+import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.readCharsFromFiles;
 
 public class ReadCharsProcessor {
 
