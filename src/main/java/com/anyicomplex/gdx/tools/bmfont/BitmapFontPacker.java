@@ -80,8 +80,18 @@ public class BitmapFontPacker {
     }
 
     public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
-        if (config == null) exception("Configuration cannot be null.");
         verbose("Process begin.");
+        verbose("Checking parameters...");
+        if (srcFile == null) exception("srcFile cannot be null.");
+        if (!srcFile.exists()) exception("srcFile not exists.");
+        if (srcFile.isDirectory()) exception("srcFile is not a regular file.");
+        if (!srcFile.file().canRead()) exception("srcFile is not readable.");
+        if (dstDir == null) exception("dstDir cannot be null.");
+        if (!dstDir.exists()) dstDir.mkdirs();
+        if (!dstDir.isDirectory()) exception("dstDir is not a directory.");
+        if (!dstDir.file().canWrite()) exception("dstDir is not writable.");
+        if (config == null) exception("config cannot be null.");
+        verbose("All parameters valid.");
         verbose("Generating FreeType config...");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
