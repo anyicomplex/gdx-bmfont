@@ -75,25 +75,25 @@ public class BitmapFontPacker {
         public boolean incremental;
     }
 
-    public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config) {
-        return process(srcFile, dstDir, config, true);
+    public static int process(FileHandle inputFile, FileHandle outputDir, Configuration config) {
+        return process(inputFile, outputDir, config, true);
     }
 
-    public static int process(FileHandle srcFile, FileHandle dstDir, Configuration config, boolean override) {
+    public static int process(FileHandle inputFile, FileHandle outputDir, Configuration config, boolean override) {
         verbose("Process begin.");
         verbose("Checking parameters...");
-        if (srcFile == null) exception("srcFile cannot be null.");
-        if (!srcFile.exists()) exception("srcFile not exists.");
-        if (srcFile.isDirectory()) exception("srcFile is not a regular file.");
-        if (!srcFile.file().canRead()) exception("srcFile is not readable.");
-        if (dstDir == null) exception("dstDir cannot be null.");
-        if (!dstDir.exists()) dstDir.mkdirs();
-        if (!dstDir.isDirectory()) exception("dstDir is not a directory.");
-        if (!dstDir.file().canWrite()) exception("dstDir is not writable.");
+        if (inputFile == null) exception("inputFile cannot be null.");
+        if (!inputFile.exists()) exception("inputFile not exists.");
+        if (inputFile.isDirectory()) exception("inputFile is not a regular file.");
+        if (!inputFile.file().canRead()) exception("inputFile is not readable.");
+        if (outputDir == null) exception("outputDir cannot be null.");
+        if (!outputDir.exists()) outputDir.mkdirs();
+        if (!outputDir.isDirectory()) exception("outputDir is not a directory.");
+        if (!outputDir.file().canWrite()) exception("outputDir is not writable.");
         if (config == null) exception("config cannot be null.");
         verbose("All parameters valid.");
         verbose("Generating FreeType config...");
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(srcFile);
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(inputFile);
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
         if (config.pageWidth != -1 && config.pageHeight != -1) {
             if (parameter.packer == null) {
@@ -112,14 +112,14 @@ public class BitmapFontPacker {
         FreeTypeFontGenerator.FreeTypeBitmapFontData data = new FreeTypeFontGenerator.FreeTypeBitmapFontData();
         BitmapFont bitmapFont = generator.generateFont(parameter, data);
         verbose("BitmapFont data generated successfully.");
-        String fileName = stringNotEmpty(config.name) ? config.name : srcFile.nameWithoutExtension();
+        String fileName = stringNotEmpty(config.name) ? config.name : inputFile.nameWithoutExtension();
         FileHandle[] pageFiles = new FileHandle[bitmapFont.getRegions().size];
         verbose("Glyph page amount: " + pageFiles.length);
         for (int i = 0; i < bitmapFont.getRegions().size; i ++) {
-            FileHandle pageFile = dstDir.child(fileName + (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
+            FileHandle pageFile = outputDir.child(fileName + (bitmapFont.getRegions().size == 1 ? ".png" : "_" + i + ".png"));
             pageFiles[i] = pageFile;
         }
-        FileHandle fntFile = dstDir.child(fileName + ".fnt");
+        FileHandle fntFile = outputDir.child(fileName + ".fnt");
         if (!override) {
             verbose("Checking whether files exists...");
             for (FileHandle pageFile : pageFiles) {

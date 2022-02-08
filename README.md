@@ -18,10 +18,10 @@ Usage: gdx-bmfont [-hikmMovV] [--border-straight] [--flip] [-b=<borderWidth>]
                   [-s=<shadowOffsetX,shadowOffsetY>] [-S=<spaceX,spaceY>]
                   [--shadow-color=<shadowColor>]
                   [--characters-files=<charactersFile|charactersDir>...]...
-                  <srcFile> <dstDir>
+                  <inputFile> <outputDir>
 Generate BitmapFont from FreeType supported font file.
-      <srcFile>             The FreeType supported font file.
-      <dstDir>              The BitmapFont output directory.
+      <inputFile>           The FreeType supported font file.
+      <outputDir>           The BitmapFont output directory.
   -b, --border-width=<borderWidth>
                             Border width in pixels, 0 to disable.
       --border-color=<borderColor>
@@ -84,5 +84,5 @@ Generate BitmapFont from FreeType supported font file.
                               FFFFFF.
   -v, --verbose             Enable verbose output.
   -V, --version             Print version information and exit.
-sh-5.1$
+sh-5.1$ 
 ```

@@ -38,9 +38,9 @@ import static com.anyicomplex.gdx.tools.bmfont.Utils.*;
 public class GdxBMFont implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0", description = "The FreeType supported font file.")
-    private File srcFile;
+    private File inputFile;
     @CommandLine.Parameters(index = "1", description = "The BitmapFont output directory.")
-    private File dstDir;
+    private File outputDir;
 
     @CommandLine.Option(names = {"-n", "--name"}, description = "The output file base name.")
     private String name;
@@ -196,7 +196,7 @@ public class GdxBMFont implements Callable<Integer> {
         BitmapFontPacker.VERBOSE = VERBOSE;
         verbose("BitmapFontPacker config generated successfully.");
         verbose("Processing BitmapFontPacker...");
-        int result = BitmapFontPacker.process(Gdx.files.absolute(srcFile.getAbsolutePath()), Gdx.files.absolute(dstDir.getAbsolutePath()), config, override);
+        int result = BitmapFontPacker.process(Gdx.files.absolute(inputFile.getAbsolutePath()), Gdx.files.absolute(outputDir.getAbsolutePath()), config, override);
         if (result != BitmapFontPacker.CODE_SUCCESS) {
             error("BitmapFontPacker processed failed with exit code " + result + ".");
             return result;
