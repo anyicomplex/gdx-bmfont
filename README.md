@@ -1,4 +1,4 @@
-# gdx-bmfont [![Java CI with Gradle](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml/badge.svg)](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml) [![License](https://img.shields.io/github/license/anyicomplex/gdx-bmfont)](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
+# gdx-bmfont [![Java CI with Gradle](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml/badge.svg)](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml) [![Publish to Maven Central](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle-publish.yml) [![License](https://img.shields.io/github/license/anyicomplex/gdx-bmfont)](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
 
 CLI BitmapFont packer tool powered by Java, libGDX &amp; PicoCLI.
 
