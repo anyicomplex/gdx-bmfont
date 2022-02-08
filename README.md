@@ -1,6 +1,6 @@
 # gdx-bmfont [![Java CI with Gradle](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml/badge.svg)](https://github.com/anyicomplex/gdx-bmfont/actions/workflows/gradle.yml) [![License](https://img.shields.io/github/license/anyicomplex/gdx-bmfont)](https://github.com/anyicomplex/gdx-bmfont/blob/master/LICENSE)
 
-CLI BitmapFont packer tool powered by Java, libGDX &amp; Picocli.
+CLI BitmapFont packer tool powered by Java, libGDX &amp; PicoCLI.
 
 ```sh
 sh-5.1$ java -jar gdx-bmfont-1.0.3.jar --help
