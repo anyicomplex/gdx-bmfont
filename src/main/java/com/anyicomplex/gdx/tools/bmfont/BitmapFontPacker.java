@@ -24,17 +24,20 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PixmapPacker;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeType;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.StringBuilder;
+import com.badlogic.gdx.utils.reflect.ClassReflection;
+import com.badlogic.gdx.utils.reflect.Field;
+import com.badlogic.gdx.utils.reflect.ReflectionException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.quote;
-import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.stringNotEmpty;
+import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.*;
 
 /**
  * <p>BitmapFont packer library based on libGDX's FreeType wrapper.</p>
@@ -185,6 +188,15 @@ public class BitmapFontPacker {
         verbose("All parameters valid.");
         verbose("Generating FreeType config...");
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(inputFile);
+        try {
+            Field faceField = ClassReflection.getDeclaredField(FreeTypeFontGenerator.class, "face");
+            faceField.setAccessible(true);
+            FreeType.Face face = (FreeType.Face) faceField.get(generator);
+            int styleFlags = face.getStyleFlags();
+            if ((styleFlags & FreeType.FT_STYLE_FLAG_ITALIC) == FreeType.FT_STYLE_FLAG_ITALIC) config.italic = true;
+            if ((styleFlags & FreeType.FT_STYLE_FLAG_BOLD) == FreeType.FT_STYLE_FLAG_BOLD) config.bold = true;
+        } catch (ReflectionException ignored) {
+        }
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = parameter(config);
         if (config.pageWidth != -1 && config.pageHeight != -1) {
             if (parameter.packer == null) {
@@ -262,10 +274,6 @@ public class BitmapFontPacker {
 
     private static void error(String message) {
         Utils.error(TAG, message);
-    }
-
-    private static void exception(String message) {
-        Utils.exception(TAG, message);
     }
 
     private static FreeTypeFontGenerator.FreeTypeFontParameter parameter(Configuration config) {
@@ -488,11 +496,18 @@ public class BitmapFontPacker {
 
         /**
          * Throw a runtime exception with message.
-         * @param tag the tag
          * @param message the message
          */
-        default void exception(String tag, String message) {
-            throw new GdxRuntimeException("[" + tag + "] " + message);
+        default void exception(String message) {
+            throw new GdxRuntimeException(message);
+        }
+
+        /**
+         * Throw a runtime exception with the throwable object.
+         * @param throwable the throwable
+         */
+        default void exception(Throwable throwable) {
+            throw new GdxRuntimeException(throwable);
         }
 
     }
@@ -547,8 +562,11 @@ public class BitmapFontPacker {
         static void error(String tag, String message) {
             platformSupport.error(tag, message);
         }
-        static void exception(String tag, String message) {
-            platformSupport.exception(tag, message);
+        static void exception(String message) {
+            platformSupport.exception(message);
+        }
+        static void exception(Throwable throwable) {
+            platformSupport.exception(throwable);
         }
 
     }

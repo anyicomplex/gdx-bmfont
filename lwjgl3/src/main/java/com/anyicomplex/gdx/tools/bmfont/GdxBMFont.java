@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 
 import static com.anyicomplex.gdx.tools.bmfont.BitmapFontPacker.Utils.*;
 
-@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.4",
+@CommandLine.Command(name = "gdx-bmfont", mixinStandardHelpOptions = true, version = "1.0.5",
         description = "Generate BitmapFont from FreeType supported font file.")
 public class GdxBMFont implements Callable<Integer> {
 

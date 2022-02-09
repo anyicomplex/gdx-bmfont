@@ -40,12 +40,9 @@ class Lwjgl3PlatformSupport implements BitmapFontPacker.PlatformSupport {
     }
 
     @Override
-    public void exception(String tag, String message) {
-        if (tag == null) {
-            if (stringNotEmpty(message)) throw new GdxRuntimeException(message);
-            throw new GdxRuntimeException((Throwable) null);
-        }
-        throw new GdxRuntimeException(errorColor("[" + tag + "] " + message));
+    public void exception(String message) {
+        if (!stringNotEmpty(message)) throw new GdxRuntimeException((Throwable) null);
+        throw new GdxRuntimeException(errorColor(message));
     }
 
     private String errorColor(String string) {

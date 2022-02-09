@@ -3,7 +3,7 @@
 CLI BitmapFont packer tool powered by Java, libGDX &amp; PicoCLI.
 
 ```sh
-sh-5.1$ java -jar gdx-bmfont-1.0.4.jar --help
+sh-5.1$ java -jar gdx-bmfont-1.0.5.jar --help
 Usage: gdx-bmfont [-hikmMovV] [--border-straight] [--flip] [-b=<borderWidth>]
                   [--border-color=<borderColor>] [--border-gamma=<borderGamma>]
                   [-c=<characters>] [-C=<color>] [--charset=<charset>]
